@@ -39,13 +39,13 @@ class BoruvkaTree
       ~BoruvkaTree( );
 
       void create( std::vector<vertex_descriptor> vertices);
-      void setParent( vertex_descriptor child, vertex_descriptor parent);
+      void setParent( vertex_descriptor child, vertex_descriptor parent, int weight);
       void setParent( BoruvkaNode* child, BoruvkaNode* parent, int weight);
       void makeEmpty();
       
       BoruvkaNode* getRoot() const;
-      std::vector<BoruvkaNode*> getChildren() const;
-      std::vector<BoruvkaNode*> getSiblings() const;
+      std::vector<BoruvkaNode*> getChildren() const; //@TODO
+      std::vector<BoruvkaNode*> getSiblings() const; //@TODO
 
   private:
       BoruvkaNode* root;
@@ -53,9 +53,7 @@ class BoruvkaTree
       std::map< vertex_descriptor, BoruvkaNode*> vertexToNode;
       std::map< BoruvkaNode*, vertex_descriptor> nodeToVertex;
       void makeEmpty(BoruvkaNode* node);
-
-      const string & elementAt( BoruvkaNode* t ) const;
-    
+  
 };
 
 #endif

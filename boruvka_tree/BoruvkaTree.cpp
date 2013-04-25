@@ -10,7 +10,7 @@
 */
 BoruvkaTree::BoruvkaTree( int numLeaves )
 {
-  this.numNodes = numLeaves;
+  this->numNodes = numLeaves;
 }
 
 
@@ -19,7 +19,7 @@ BoruvkaTree::BoruvkaTree( int numLeaves )
 */
 BoruvkaTree::~BoruvkaTree( )
 {
-    makeEmpty( );
+    this->makeEmpty();
 }
 
 /**
@@ -28,7 +28,7 @@ BoruvkaTree::~BoruvkaTree( )
 void BoruvkaTree::create( std::vector<vertex_descriptor> vertices)
 {
   std::vector<vertex_descriptor>::iterator first = vertices.begin();
-  for( ; first != vertices.end; ++first)
+  for( ; first != vertices.end(); ++first)
   {
     if (vertexToNode[*first]->getType() == 0)
     {
@@ -43,9 +43,9 @@ void BoruvkaTree::create( std::vector<vertex_descriptor> vertices)
 /**
  * Sets the parent for the selected vertex descriptor
  */
-void BoruvkaTre::setParent( vertex_descriptor child, vertex_descriptor parent, int weight)
+void BoruvkaTree::setParent( vertex_descriptor child, vertex_descriptor parent, int weight)
 {
-  if (vertexToNode[parent]->getType() = 0)
+  if (vertexToNode[parent]->getType() == 0)
   {
     BoruvkaNode* newNode = new BoruvkaNode(parent);
     newNode->setParent( root, -1);
@@ -72,7 +72,7 @@ void BoruvkaTree::makeEmpty( )
 
 BoruvkaNode* BoruvkaTree::getRoot() const
 {
-  return root;
+  return this->root;
 }
 
 //need to implement getChildren and getSiblings still
@@ -85,6 +85,7 @@ void BoruvkaTree::makeEmpty( BoruvkaNode* t )
     if ( t != NULL )
     {
         //for all children of t, call MakeEmpty
+        //@TODO
         delete t;
     }
     t = NULL;

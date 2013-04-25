@@ -3,15 +3,16 @@
  */
 
 #include "BoruvkaNode.hpp"
+#include <iostream>
 
 /**
  * Default construct the node
  */
 BoruvkaNode::BoruvkaNode()
 {
-  this.parent = NULL;
-  this.constructorType = 0; //Signifies default constructor
-  this.weightToParent = -1;
+  this->parent = NULL;
+  this->constructorType = 0; //Signifies default constructor
+  this->weightToParent = -1;
 }
 
 /**
@@ -19,23 +20,23 @@ BoruvkaNode::BoruvkaNode()
  */
 BoruvkaNode::BoruvkaNode( vertex_descriptor vertex)
 {
-  this.parent = NULL;
-  this.constructorType = 1; //Signifies non-default constructor
-  this.weightToParent = -1;
+  this->parent = NULL;
+  this->constructorType = 1; //Signifies non-default constructor
+  this->weightToParent = -1;
 }
 
 void BoruvkaNode::addChild( BoruvkaNode* child)
 {
-  childern.insert(child);
+  children.push_back( child);
 }
 
 void BoruvkaNode::setParent (BoruvkaNode* parent, int weight)
 {
-  this.parent = parent;
-  this.weightToParent = weight;
+  this->parent = parent;
+  this->weightToParent = weight;
 }
 
-int getType()
+int BoruvkaNode::getType()
 {
-  return constructorType;
+  return this->constructorType;
 }
