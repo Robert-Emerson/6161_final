@@ -57,7 +57,7 @@ Graph kktMST( Graph& graph);
  * @return graph Returns a condensed version of the graph
  * Condenses the graph using the Boruvka algorithm
  */
-Graph boruvkaCut( Graph graph);
+Graph boruvkaCut( Graph graph, int createTree);
 
 w_edge findMinWeightEdge( w_edge edge1, w_edge edge2);
 
@@ -127,65 +127,128 @@ void createGraph( Graph& graph)
   }
 }
 
-Graph boruvkaCut( Graph graph)
-{  
-  EdgeWeightMap weight = boost::get(boost::edge_weight_t(), graph);
-  vertex_iterator vertexBegin, vertexEnd;
-  edge_iterator edgeBegin, edgeEnd;
-  edge_descriptor minWeightEdge;
-  Graph graph2;
-  
-  const int infinity = (std::numeric_limits<int>::max)();
-  std::vector<w_edge> candidate_edges( supervertices.size(), w_edge( edge_descriptor(), infinity));
-  
-  boost::tie( edgeBegin, edgeEnd) = boost::edges( graph);
-  
-  for (; edgeBegin != edgeEnd; ++edgeBegin)
+Graph boruvkaCut( Graph graph, int createTree)
+{ 
+  if (createTree == 0) //first cut, don't need to create tree
   {
-    int w = boost::get(weight, *edgeBegin);
-    int u = supervertex_map[dset.find_set(source(*edgeBegin, graph))];
-    int v = supervertex_map[dset.find_set(target(*edgeBegin, graph))];
+    EdgeWeightMap weight = boost::get(boost::edge_weight_t(), graph);
+    vertex_iterator vertexBegin, vertexEnd;
+    edge_iterator edgeBegin, edgeEnd;
+    edge_descriptor minWeightEdge;
+    Graph graph2;
+    
+    const int infinity = (std::numeric_limits<int>::max)();
+    std::vector<w_edge> candidate_edges( supervertices.size(), w_edge( edge_descriptor(), infinity));
+    
+    boost::tie( edgeBegin, edgeEnd) = boost::edges( graph);
+    
+    for (; edgeBegin != edgeEnd; ++edgeBegin)
+    {
+      int w = boost::get(weight, *edgeBegin);
+      int u = supervertex_map[dset.find_set(source(*edgeBegin, graph))];
+      int v = supervertex_map[dset.find_set(target(*edgeBegin, graph))];
 
-    if (u != v)
-    {
-      candidate_edges[u] = findMinWeightEdge( candidate_edges[u], w_edge( *edgeBegin, w));
-      candidate_edges[v] = findMinWeightEdge( candidate_edges[v], w_edge( *edgeBegin, w));
-    }
-  }
-  
-  for (int i = 0; i < candidate_edges.size(); ++i)
-  {
-    if (candidate_edges[i].second != infinity)
-    {
-      edge_descriptor e = candidate_edges[i].first;
-      vertex_descriptor u = dset.find_set( source(e, graph));
-      vertex_descriptor v = dset.find_set( target(e, graph));
       if (u != v)
       {
-	// Link the two supervertices
-	dset.link(u, v);
-
-	// Whichever vertex was reparented will be removed from the
-	// list of supervertices.
-	vertex_descriptor victim = u;
-	if (dset.find_set(u) == u)
-	    victim = v;
-	supervertices[supervertex_map[victim]] = boost::graph_traits<Graph>::null_vertex();
+	candidate_edges[u] = findMinWeightEdge( candidate_edges[u], w_edge( *edgeBegin, w));
+	candidate_edges[v] = findMinWeightEdge( candidate_edges[v], w_edge( *edgeBegin, w));
       }
     }
-  }
-  //given a vector of vertices from supervertices, form graph.
-  
-  for( std::vector<vertex_descriptor>::iterator vertexBegin = supervertices.begin();
-       vertexBegin != supervertices.end(); ++vertexBegin)
+    
+    for (int i = 0; i < candidate_edges.size(); ++i)
+    {
+      if (candidate_edges[i].second != infinity)
       {
-	vertex_descriptor v = add_vertex(graph2);
-	v = *vertexBegin;
+	edge_descriptor e = candidate_edges[i].first;
+	vertex_descriptor u = dset.find_set( source(e, graph));
+	vertex_descriptor v = dset.find_set( target(e, graph));
+	if (u != v)
+	{
+	  // Link the two supervertices
+	  dset.link(u, v);
+
+	  // Whichever vertex was reparented will be removed from the
+	  // list of supervertices.
+	  vertex_descriptor victim = u;
+	  if (dset.find_set(u) == u)
+	      victim = v;
+	  supervertices[supervertex_map[victim]] = boost::graph_traits<Graph>::null_vertex();
+	}
       }
-  supervertices.erase( std::remove( supervertices.begin(), supervertices.end(),
-                                    boost::graph_traits<Graph>::null_vertex()),
-                        supervertices.end());
-  return graph2;
+    }
+    //given a vector of vertices from supervertices, form graph.
+    
+    for( std::vector<vertex_descriptor>::iterator vertexBegin = supervertices.begin();
+	vertexBegin != supervertices.end(); ++vertexBegin)
+	{
+	  vertex_descriptor v = add_vertex(graph2);
+	  v = *vertexBegin;
+	}
+    supervertices.erase( std::remove( supervertices.begin(), supervertices.end(),
+				      boost::graph_traits<Graph>::null_vertex()),
+			  supervertices.end());
+    return graph2;
+  }
+  else //Create the boruvka tree in this step
+  {
+    EdgeWeightMap weight = boost::get(boost::edge_weight_t(), graph);
+    vertex_iterator vertexBegin, vertexEnd;
+    edge_iterator edgeBegin, edgeEnd;
+    edge_descriptor minWeightEdge;
+    Graph graph2;
+    
+    const int infinity = (std::numeric_limits<int>::max)();
+    std::vector<w_edge> candidate_edges( supervertices.size(), w_edge( edge_descriptor(), infinity));
+    
+    boost::tie( edgeBegin, edgeEnd) = boost::edges( graph);
+    
+    for (; edgeBegin != edgeEnd; ++edgeBegin)
+    {
+      int w = boost::get(weight, *edgeBegin);
+      int u = supervertex_map[dset.find_set(source(*edgeBegin, graph))];
+      int v = supervertex_map[dset.find_set(target(*edgeBegin, graph))];
+
+      if (u != v)
+      {
+	candidate_edges[u] = findMinWeightEdge( candidate_edges[u], w_edge( *edgeBegin, w));
+	candidate_edges[v] = findMinWeightEdge( candidate_edges[v], w_edge( *edgeBegin, w));
+      }
+    }
+    
+    for (int i = 0; i < candidate_edges.size(); ++i)
+    {
+      if (candidate_edges[i].second != infinity)
+      {
+	edge_descriptor e = candidate_edges[i].first;
+	vertex_descriptor u = dset.find_set( source(e, graph));
+	vertex_descriptor v = dset.find_set( target(e, graph));
+	if (u != v)
+	{
+	  // Link the two supervertices
+	  dset.link(u, v);
+
+	  // Whichever vertex was reparented will be removed from the
+	  // list of supervertices.
+	  vertex_descriptor victim = u;
+	  if (dset.find_set(u) == u)
+	      victim = v;
+	  supervertices[supervertex_map[victim]] = boost::graph_traits<Graph>::null_vertex();
+	}
+      }
+    }
+    //given a vector of vertices from supervertices, form graph.
+    
+    for( std::vector<vertex_descriptor>::iterator vertexBegin = supervertices.begin();
+	vertexBegin != supervertices.end(); ++vertexBegin)
+	{
+	  vertex_descriptor v = add_vertex(graph2);
+	  v = *vertexBegin;
+	}
+    supervertices.erase( std::remove( supervertices.begin(), supervertices.end(),
+				      boost::graph_traits<Graph>::null_vertex()),
+			  supervertices.end());
+    return graph2;
+  }
   
 }
 

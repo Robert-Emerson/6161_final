@@ -6,13 +6,21 @@
 
 class BoruvkaNode
 {
+  public:
+    BoruvkaNode();
+    BoruvkaNode(vertex_descriptor);
+    ~BoruvkaNode();
+    
+    void addChild( BoruvkaNode* child);
+    void setParent( BoruvkaNode* parent, int weight);
+    
+    int getType();
+    
+  private:
     std::list<BoruvkaNode*> children;
     BoruvkaNode* parent;
     int weightToParent;
-
-    BinaryNode( const int theWeight, BinaryNode *lt, BinaryNode *rt )
-            : weightToParent( theWeight ), parent( NULL ) { }
-    friend class BoruvkaTree;
+    int constructorType;
 };
 
 #endif

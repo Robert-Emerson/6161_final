@@ -1,347 +1,91 @@
 /*
  * Robert Emerson
- * roe2pj
- * 2-28-2012
- * binarysearchtree.cpp: method implementations for binary search tree
  */
 
-/* binarysearchtree.cpp: method implementations for binary search tree */
+#include "BoruvkaTree.hpp"
 
-#include "binarysearchtree.h"
-
-/**
-* Implements an unbalanced binary search tree.
-* Note that all "matching" is based on the < method.
-*/
 
 /**
 * Construct the tree.
 */
-BinarySearchTree::BinarySearchTree( const string & notFound )
-        : ITEM_NOT_FOUND( notFound ), root( NULL )
+BoruvkaTree::BoruvkaTree( int numLeaves )
 {
-    RightLinksFollowed = 0;
-    LeftLinksFollowed = 0;
-    num_nodes = 0;
+  this.numNodes = numLeaves;
 }
 
-
-/**
-* Copy constructor.
-*/
-BinarySearchTree::BinarySearchTree( const BinarySearchTree & rhs )
-        : ITEM_NOT_FOUND( rhs.ITEM_NOT_FOUND ), root( NULL )
-{
-    *this = rhs;
-}
 
 /**
 * Destructor for the tree.
 */
-BinarySearchTree::~BinarySearchTree( )
+BoruvkaTree::~BoruvkaTree( )
 {
     makeEmpty( );
 }
 
 /**
-* Insert x into the tree; duplicates are ignored.
-*/
-
-void BinarySearchTree::insert( const string & x )
+ * Create all the leaves of the tree
+ */
+void BoruvkaTree::create( std::vector<vertex_descriptor> vertices)
 {
-    insert( x, root );
+  std::vector<vertex_descriptor>::iterator first = vertices.begin();
+  for( ; first != vertices.end; ++first)
+  {
+    if (vertexToNode[*first]->getType() == 0)
+    {
+      BoruvkaNode* newNode = new BoruvkaNode(*first);
+      newNode->setParent( root, -1);
+      vertexToNode[*first] = newNode;
+      nodeToVertex[newNode] = *first;
+    }
+  }
 }
 
 /**
-* Remove x from the tree. Nothing is done if x is not found.
-*/
-void BinarySearchTree::remove( const string & x )
+ * Sets the parent for the selected vertex descriptor
+ */
+void BoruvkaTre::setParent( vertex_descriptor child, vertex_descriptor parent, int weight)
 {
-    remove( x, root );
+  if (vertexToNode[parent]->getType() = 0)
+  {
+    BoruvkaNode* newNode = new BoruvkaNode(parent);
+    newNode->setParent( root, -1);
+    vertexToNode[parent] = newNode;
+    nodeToVertex[newNode] = parent;
+  }
+  setParent(vertexToNode[child], vertexToNode[parent], weight);
 }
 
-/**
-* Returns the number of left links followed so far in the tree.
-*/
-int BinarySearchTree::GetLeftLinksFollowed( ) const
+void BoruvkaTree::setParent( BoruvkaNode* child, BoruvkaNode* parent, int weight)
 {
-    return LeftLinksFollowed;
-}
-
-/**
-* Returns the number of right links followed so far in the tree.
-*/
-
-int BinarySearchTree::GetRightLinksFollowed( ) const
-{
-    return RightLinksFollowed;
-}
-
-/**
-* Returns the cardinality (number of nodes) in the tree.
-*/
-
-int BinarySearchTree::card_of( ) const
-{
-    return num_nodes;
-}
-
-
-double BinarySearchTree::exp_path_length( )
-/*
-**  Calculate the expected path length of the tree
-**  This is the public version, without a parameter.
-**  NOTE that it recursively invokes int_path_length()
-*/
-{
-    
-  return (double) int_path_length(root, 0)/ num_nodes;
-}
-
-int BinarySearchTree::int_path_length(BinaryNode *t, int depth)
-{
-    if(t->left == NULL && t->right == NULL)
-    return depth;
-  else if (t->left != NULL && t->right == NULL)
-    return depth + int_path_length(t->left, depth+1);
-  else if (t->left == NULL && t->right != NULL)
-    return depth + int_path_length(t->right, depth+1);
-  else
-    return depth + int_path_length(t->left, depth+1) + int_path_length(t->right, depth+1);
-}
-
-/**
-* Find the smallest item in the tree.
-* Return smallest item or ITEM_NOT_FOUND if empty.
-*/
-
-const string & BinarySearchTree::findMin( ) const
-{
-    return elementAt( findMin( root ) );
-}
-
-/**
-* Find the largest item in the tree.
-* Return the largest item of ITEM_NOT_FOUND if empty.
-*/
-
-const string & BinarySearchTree::findMax( ) const
-{
-    return elementAt( findMax( root ) );
-}
-
-/**
-* Find item x in the tree.
-* Return the matching item or ITEM_NOT_FOUND if not found.
-*/
-const string & BinarySearchTree::find( const string & x ) const
-{
-    return elementAt( find( x, root ) );
+  child->setParent(parent, weight);
+  parent->addChild(child);
 }
 
 /**
 * Make the tree logically empty.
 */
-
-void BinarySearchTree::makeEmpty( )
+void BoruvkaTree::makeEmpty( )
 {
     // call the private makeEmpty() routine
     makeEmpty( root );
 }
 
-/**
-* Test if the tree is logically empty.
-* Return true if empty, false otherwise.
-*/
-
-bool BinarySearchTree::isEmpty( ) const
+BoruvkaNode* BoruvkaTree::getRoot() const
 {
-    return root == NULL;
+  return root;
 }
 
-/**
-* Print the tree contents in sorted order.
-*/
-
-void BinarySearchTree::printTree( ) const
-{
-    if ( isEmpty( ) )
-        cout << "Empty tree" << endl;
-    else
-        printTree( root );
-}
-
-/**
-* Deep copy.
-*/
-
-const BinarySearchTree & BinarySearchTree::operator=( const BinarySearchTree & rhs )
-{
-    if ( this != &rhs )
-    {
-        makeEmpty( );
-        root = clone( rhs.root );
-    }
-    return *this;
-}
-
-/**
-* Internal method to get element field in node t.
-* Return the element field or ITEM_NOT_FOUND if t is NULL.
-*/
-const string & BinarySearchTree::elementAt( BinaryNode *t ) const
-{
-    return t == NULL ? ITEM_NOT_FOUND : t->element;
-}
-
-/**
-* Internal method to insert into a subtree.
-* x is the item to insert.
-* t is the node that roots the tree.
-* Set the new root.
-*/
-void BinarySearchTree::insert( const string & x, BinaryNode * & t ) const
-{
-    if ( t == NULL ) {
-        t = new BinaryNode( x, NULL, NULL );
-	num_nodes++;
-    }
-    else if ( x < t->element ) {
-        insert( x, t->left );
-    } else if ( t->element < x ) {
-        insert( x, t->right );
-    }
-    else
-        ;
-
-}
-
-/**
-* Internal method to remove from a subtree.
-* x is the item to remove.
-* t is the node that roots the tree.
-* Set the new root.
-*/
-void BinarySearchTree::remove( const string & x, BinaryNode * & t ) const
-{
-    if ( t == NULL )
-        return;   // Item not found; do nothing
-    if ( x < t->element )
-        remove( x, t->left );
-    else if ( t->element < x )
-        remove( x, t->right );
-    else if ( t->left != NULL && t->right != NULL ) // Two children
-    {
-        t->element = findMin( t->right )->element;
-        remove( t->element, t->right );
-    }
-    else
-    {
-        BinaryNode *oldNode = t;
-        t = ( t->left != NULL ) ? t->left : t->right;
-        delete oldNode;
-    }
-}
-
-/**
-* Internal method to find the smallest item in a subtree t.
-* Return node containing the smallest item.
-*/
-
-BinaryNode * BinarySearchTree::findMin( BinaryNode *t ) const
-{
-    if ( t == NULL )
-        return NULL;
-    if ( t->left == NULL )
-        return t;
-    return findMin( t->left );
-}
-
-/**
-* Internal method to find the largest item in a subtree t.
-* Return node containing the largest item.
-*/
-
-BinaryNode * BinarySearchTree::findMax( BinaryNode *t ) const
-{
-    if ( t != NULL )
-        while ( t->right != NULL )
-            t = t->right;
-    return t;
-}
-
-/**
-* Internal method to find an item in a subtree.
-* x is item to search for.
-* t is the node that roots the tree.
-* Return node containing the matched item.
-*/
-BinaryNode * BinarySearchTree::find( const string & x, BinaryNode *t ) const
-{
-    if ( t == NULL )
-        return NULL;
-    else if ( x < t->element ) {
-      LeftLinksFollowed++;
-        return find( x, t->left );
-    } else if ( t->element < x ) {
-      RightLinksFollowed++;
-        return find( x, t->right );
-    } else
-        return t;    // Match
-}
-/****** NONRECURSIVE VERSION*************************
-
-BinaryNode *
-BinarySearchTree::find( const string & x, BinaryNode *t ) const
-{
-while( t != NULL )
-if( x < t->element )
-t = t->left;
-else if( t->element < x )
-t = t->right;
-else
-return t;    // Match
-
-return NULL;   // No match
-}
-*****************************************************/
+//need to implement getChildren and getSiblings still
 
 /**
 * Internal method to make subtree empty.
 */
-
-void BinarySearchTree::makeEmpty( BinaryNode * & t ) const
+void BoruvkaTree::makeEmpty( BoruvkaNode* t )
 {
     if ( t != NULL )
     {
-        makeEmpty( t->left );
-        makeEmpty( t->right );
+        //for all children of t, call MakeEmpty
         delete t;
     }
     t = NULL;
-}
-
-/**
-* Internal method to print a subtree rooted at t in sorted order.
-*/
-
-void BinarySearchTree::printTree( BinaryNode *t ) const
-{
-    if ( t != NULL )
-    {
-        printTree( t->left );
-        cout << t->element << endl;
-        printTree( t->right );
-    }
-}
-
-/**
-* Internal method to clone subtree.
-*/
-BinaryNode * BinarySearchTree::clone( BinaryNode * t ) const
-{
-    if ( t == NULL )
-        return NULL;
-    else
-        return new BinaryNode( t->element, clone( t->left ), clone( t->right ) );
 }
