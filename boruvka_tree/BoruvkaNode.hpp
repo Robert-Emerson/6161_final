@@ -2,7 +2,7 @@
 #ifndef BORUVKA_NODE_H
 #define BORUVKA_NODE_H
 
-#include <list>
+#include <vector>
 
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/adjacency_list.hpp"
@@ -35,10 +35,12 @@ class BoruvkaNode
     void addChild( BoruvkaNode* child);
     void setParent( BoruvkaNode* parent, int weight);
     
-    int getType();
+    int getType() const;
+    std::vector<BoruvkaNode*>& getChildren();
+    BoruvkaNode* getParent();
     
   private:
-    std::list<BoruvkaNode*> children;
+    std::vector<BoruvkaNode*> children;
     BoruvkaNode* parent;
     int weightToParent;
     int constructorType;

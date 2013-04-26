@@ -27,7 +27,7 @@ BoruvkaNode::BoruvkaNode( vertex_descriptor vertex)
 
 void BoruvkaNode::addChild( BoruvkaNode* child)
 {
-  children.push_back( child);
+  children.push_back(child);
 }
 
 void BoruvkaNode::setParent (BoruvkaNode* parent, int weight)
@@ -36,7 +36,17 @@ void BoruvkaNode::setParent (BoruvkaNode* parent, int weight)
   this->weightToParent = weight;
 }
 
-int BoruvkaNode::getType()
+int BoruvkaNode::getType() const
 {
   return this->constructorType;
+}
+
+BoruvkaNode* BoruvkaNode::getParent()
+{
+  return this->parent;
+}
+
+std::vector<BoruvkaNode*>& BoruvkaNode::getChildren()
+{
+  return this->children;
 }

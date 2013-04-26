@@ -82,7 +82,7 @@ Graph kktMST( Graph& graph)
   if ( num_edges( graph) != 1)
   {
     Graph graph2( boost::num_vertices( graph));
-    BoruvkaTree boruvkaTree = BoruvkaTree( boost:num_vertices( graph));
+    BoruvkaTree boruvkaTree = BoruvkaTree( boost:num_vertices( graph), supervertex_map);
     edge_iterator edgeBegin, edgeEnd, nextEdge;
     
     graph2 = boruvkaCut( boruvkaCut( graph, 0, boruvkaTree), 1, boruvkaTree );
@@ -240,50 +240,31 @@ Graph boruvkaCut( Graph& graph, int createTree, BoruvkaTree& boruvkaTree)
 	vertex_descriptor v = dset.find_set( target(e, graph));
 	if (u != v)
 	{
-	  // Link the two supervertices
+	   // Link the two supervertices
 	  dset.link(u, v);
+	  
+	  boruvkaTree.setParent(u,v, boost::get(weight, e));
 
 	  // Whichever vertex was reparented will be removed from the
 	  // list of supervertices.
 	  vertex_descriptor victim = u;
-	  vertex_descriptor notVictim = v;
 	  if (dset.find_set(u) == u)
-	  {
 	      victim = v;
-	      notVictim = u;
-	  }
-	  parentMap[notVictim].add(victim);
+	  supervertices[supervertex_map[victim]] = boost::graph_traits<Graph>::null_vertex();
 	}
       }
     }
-        
-    //given a vector of vertices from supervertices, form graph and boruvka tree
+    //given a vector of vertices from supervertices, form graph.
     
     for( std::vector<vertex_descriptor>::iterator vertexBegin = supervertices.begin();
 	vertexBegin != supervertices.end(); ++vertexBegin)
-    {
-      if (!parentMap[*vertexBegin].empty()
-      {
-	vertex_descriptor v = add_vertex(graph2);
-	v = *vertexBegin;
-	std::list<vertex_descriptor>::iterator listIt = parentMap[v].begin();
-	for (; listIt != parentMap.end(); ++listIt)
 	{
-	  boruvkaTree.setParent(*listIt, v, boost::get( weight, boost::edge( *listIt, v).first()));
-	  supervertices[supervertex_map[*listIt]] = boost::graph_traits<Graph>::null_vertex();
+	  vertex_descriptor v = add_vertex(graph2);
+	  v = *vertexBegin;
 	}
-      }
-      else{
-	supervertices[supervertex_map[*vertexBegin]] = boost::graph_traits<Graph>::null_vertex();
-      }
-        
-    }
-	
     supervertices.erase( std::remove( supervertices.begin(), supervertices.end(),
 				      boost::graph_traits<Graph>::null_vertex()),
 			  supervertices.end());
-	
-
     return graph2;
   }
   

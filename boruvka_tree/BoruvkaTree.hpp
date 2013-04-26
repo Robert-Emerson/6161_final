@@ -34,25 +34,27 @@ typedef std::pair<edge_descriptor, int> w_edge;
 class BoruvkaTree
 {
   public:
-      BoruvkaTree(int numLeaves);
-      BoruvkaTree( const BoruvkaTree & rhs );
+      BoruvkaTree(int numLeaves, std::map< int, vertex_descriptor> intToVertex);
       ~BoruvkaTree( );
 
       void create( std::vector<vertex_descriptor> vertices);
-      void setParent( vertex_descriptor child, vertex_descriptor parent, int weight);
+      void setParent( vertex_descriptor child1, vertex_descriptor child2, int weight);
       void setParent( BoruvkaNode* child, BoruvkaNode* parent, int weight);
       void makeEmpty();
       
       BoruvkaNode* getRoot() const;
-      std::vector<BoruvkaNode*> getChildren() const; //@TODO
-      std::vector<BoruvkaNode*> getSiblings() const; //@TODO
+      std::vector<int> getChildren();
+      std::vector<int> getSiblings();
 
   private:
       BoruvkaNode* root;
       int numNodes;
       std::map< vertex_descriptor, BoruvkaNode*> vertexToNode;
       std::map< BoruvkaNode*, vertex_descriptor> nodeToVertex;
+      std::map< int, vertex_descriptor> intToVertex;
+      std::map< vertex_descriptor, int> vertexToInt;
       void makeEmpty(BoruvkaNode* node);
+      int numParents;      
   
 };
 
