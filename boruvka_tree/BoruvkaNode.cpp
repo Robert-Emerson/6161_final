@@ -15,6 +15,11 @@ BoruvkaNode::BoruvkaNode()
   this->weightToParent = -1;
 }
 
+BoruvkaNode::~BoruvkaNode()
+{
+  delete this->parent;
+}
+
 /**
  * Vertex descriptor constructor
  */

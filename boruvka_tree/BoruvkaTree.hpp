@@ -34,6 +34,7 @@ typedef std::pair<edge_descriptor, int> w_edge;
 class BoruvkaTree
 {
   public:
+      BoruvkaTree();
       BoruvkaTree(int numLeaves, std::map< int, vertex_descriptor> intToVertex);
       ~BoruvkaTree( );
 
@@ -43,6 +44,7 @@ class BoruvkaTree
       void makeEmpty();
       
       BoruvkaNode* getRoot() const;
+      int getRootInt();
       std::vector<int> getChildren();
       std::vector<int> getSiblings();
 

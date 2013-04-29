@@ -8,11 +8,14 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <ctime>
 
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/kruskal_min_spanning_tree.hpp"
 #include "boost/pending/disjoint_sets.hpp"
 
+#include "verification.hpp"
 #include "boruvka_tree/BoruvkaNode.hpp"
 #include "boruvka_tree/BoruvkaTree.hpp"
 
@@ -36,7 +39,7 @@ typedef std::pair<edge_descriptor, int> w_edge;
 typedef vertices_size_type* Rank;
 typedef vertex_descriptor* Parent;
 
-const int numNodes = 10000;
+const int numNodes = 100;
 std::vector<vertices_size_type> rank(numNodes);
 std::vector<vertex_descriptor> parent(numNodes);
 boost::disjoint_sets< Rank, Parent> dset( &rank[0], &parent[0]);
@@ -68,8 +71,21 @@ int main( int argc, char* argv[])
 {
   //Constructing our graph with 10000 nodes
   Graph graph( numNodes);
+  Graph graph2( numNodes);
 
   createGraph( graph);
+  graph2 = graph;
+  
+  clock_t begin, end;
+  double time_spent;
+
+  begin = clock();
+  std::vector < edge_descriptor > spanning_tree;
+  boost::kruskal_minimum_spanning_tree(graph2, std::back_inserter(spanning_tree));
+  end = clock();
+  time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  
+  std::cout << "Kruskal MST took: " << time_spent << " seconds." << std::endl;
   
   kktMST(graph);
   
@@ -81,36 +97,68 @@ Graph kktMST( Graph& graph)
 {
   if ( num_edges( graph) != 1)
   {
-    Graph graph2( boost::num_vertices( graph));
-    BoruvkaTree boruvkaTree = BoruvkaTree( boost:num_vertices( graph), supervertex_map);
+    Graph graphTemp( boost::num_vertices( graph));
+    
+    BoruvkaTree boruvkaTree = BoruvkaTree( boost::num_vertices( graph), supervertex_map);
     edge_iterator edgeBegin, edgeEnd, nextEdge;
     
-    graph2 = boruvkaCut( boruvkaCut( graph, 0, boruvkaTree), 1, boruvkaTree );
+    graphTemp = boruvkaCut( graph, 0, boruvkaTree);
+    
+    Graph graph2( boost::num_vertices( graphTemp));
+    graph2 = boruvkaCut( graphTemp, 1, boruvkaTree );
     
     boost::tie( edgeBegin, edgeEnd) = boost::edges( graph2);
     
-    if(boost::num_edges(graph2) / boost::num_vertices (graph2) >= 6 )
+    for (nextEdge = edgeBegin; edgeBegin != edgeEnd; edgeBegin = nextEdge)
     {
-      for (nextEdge = edgeBegin; edgeBegin != edgeEnd; edgeBegin = nextEdge)
+      if( std::rand() % 10 / 10 > .5)
       {
-	if( std::rand() % 10 / 10 > .5)
-	{
-	  ++nextEdge;
-	  boost::remove_edge( *edgeBegin , graph2);
-	}
+	++nextEdge;
+	boost::remove_edge( *edgeBegin , graph2);
       }
     }
+  
     Graph graph3( boost::num_vertices(graph2));
     
     graph3 = kktMST( graph2);
-    //verification code will go here, probably as a separate method
-    //run verification on graph using graph3 converted to tree
+    EdgeWeightMap weightMap = boost::get(boost::edge_weight_t(), graph3);
+    
+    std::vector<int> weight, upper, lower;
+    boost::tie( edgeBegin, edgeEnd) = boost::edges( graph3);
+    for (nextEdge = edgeBegin; edgeBegin != edgeEnd; ++edgeBegin)
+    {
+      int edgeWeight = boost::get(weightMap, *edgeBegin);
+      
+      weight.push_back( edgeWeight );
+      upper.push_back(source(*edgeBegin, graph3));
+      lower.push_back(target(*edgeBegin, graph3));
+    }
+    
+    MSTVerifier verify = MSTVerifier(boruvkaTree, weight, upper, lower);  
+    
+    std::vector<int> fHeavy = verify.treePathMaxima();
+    
+    boost::tie( edgeBegin, edgeEnd) = boost::edges( graph3);
+    int fHeavyCount = 0;
+    for (nextEdge = edgeBegin; edgeBegin != edgeEnd; edgeBegin = nextEdge)
+    {
+      ++nextEdge;
+      if ( fHeavy[fHeavyCount] < boost::get(weightMap, *edgeBegin) )
+	boost::remove_edge( *edgeBegin , graph3);
+    }
+    
+    Graph graph4 ( boost::num_vertices( graph3));
+    graph4 = kktMST(graph3);
     
     graph3.clear();
     graph2.clear();
+    
+    return graph4;
   }
- 
-  return graph;
+  else
+  {
+    return graph;
+  }
 }
 
 void createGraph( Graph& graph)
@@ -142,7 +190,17 @@ Graph boruvkaCut( Graph& graph, int createTree, BoruvkaTree& boruvkaTree)
     Graph graph2;
     
     const int infinity = (std::numeric_limits<int>::max)();
-    std::vector<w_edge> candidate_edges( supervertices.size(), w_edge( edge_descriptor(), infinity));
+    std::vector<w_edge> candidate_edges( supervertices.size());
+    
+    boost::tie( edgeBegin, edgeEnd) = boost::edges( graph);
+    
+    for (; edgeBegin != edgeEnd; ++edgeBegin)
+    {
+      std::pair<edge_descriptor, int> insertEdge = w_edge( *edgeBegin, infinity);
+      candidate_edges.push_back( insertEdge);
+      //std::cout << insertEdge.first << " " << insertEdge.second << std::endl;
+    }
+
     
     boost::tie( edgeBegin, edgeEnd) = boost::edges( graph);
     
@@ -174,9 +232,11 @@ Graph boruvkaCut( Graph& graph, int createTree, BoruvkaTree& boruvkaTree)
 	  // Whichever vertex was reparented will be removed from the
 	  // list of supervertices.
 	  vertex_descriptor victim = u;
-	  if (dset.find_set(u) == u)
+	  vertex_descriptor findU = dset.find_set(u);
+	  if ( findU == u)
 	      victim = v;
-	  supervertices[supervertex_map[victim]] = boost::graph_traits<Graph>::null_vertex();
+	  if ( &supervertex_map[victim] == NULL)
+	    supervertices[supervertex_map[victim]] = boost::graph_traits<Graph>::null_vertex();
 	}
       }
     }
@@ -197,10 +257,9 @@ Graph boruvkaCut( Graph& graph, int createTree, BoruvkaTree& boruvkaTree)
   {
     vertex_iterator vertexBegin, vertexEnd;
     std::vector<vertex_descriptor> vertexDescriptors;
-    std::map<vertex_descriptor, std::list<vertex_descriptor> parentMap;
+    std::map<vertex_descriptor, std::list<vertex_descriptor> > parentMap;
     
     EdgeWeightMap weight = boost::get(boost::edge_weight_t(), graph);
-    vertex_iterator vertexBegin, vertexEnd;
     edge_iterator edgeBegin, edgeEnd;
     edge_descriptor minWeightEdge;
     Graph graph2;
@@ -209,12 +268,21 @@ Graph boruvkaCut( Graph& graph, int createTree, BoruvkaTree& boruvkaTree)
     
     for (; vertexBegin != vertexEnd; ++vertexBegin)
     {
-      vertexDescriptors.add(*vertexBegin);
+      vertexDescriptors.push_back(*vertexBegin);
     }
     boruvkaTree.create(vertexDescriptors);
     
     const int infinity = (std::numeric_limits<int>::max)();
-    std::vector<w_edge> candidate_edges( supervertices.size(), w_edge( edge_descriptor(), infinity));
+    std::vector<w_edge> candidate_edges( supervertices.size());
+    
+    boost::tie( edgeBegin, edgeEnd) = boost::edges( graph);
+    
+    for (; edgeBegin != edgeEnd; ++edgeBegin)
+    {
+      std::pair<edge_descriptor, int> insertEdge = w_edge( *edgeBegin, infinity);
+      candidate_edges.push_back( insertEdge);
+      std::cout << insertEdge.first << " " << insertEdge.second << std::endl;
+    }
     
     boost::tie( edgeBegin, edgeEnd) = boost::edges( graph);
     
@@ -254,13 +322,13 @@ Graph boruvkaCut( Graph& graph, int createTree, BoruvkaTree& boruvkaTree)
 	}
       }
     }
-    //given a vector of vertices from supervertices, form graph.
     
-    for( std::vector<vertex_descriptor>::iterator vertexBegin = supervertices.begin();
-	vertexBegin != supervertices.end(); ++vertexBegin)
+    //given a vector of vertices from supervertices, form graph.
+    std::vector<vertex_descriptor>::iterator superVertexBegin = supervertices.begin();
+    for( ; superVertexBegin != supervertices.end(); ++superVertexBegin)
 	{
 	  vertex_descriptor v = add_vertex(graph2);
-	  v = *vertexBegin;
+	  v = *superVertexBegin;
 	}
     supervertices.erase( std::remove( supervertices.begin(), supervertices.end(),
 				      boost::graph_traits<Graph>::null_vertex()),

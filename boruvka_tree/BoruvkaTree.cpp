@@ -4,7 +4,10 @@
 
 #include "BoruvkaTree.hpp"
 
-
+BoruvkaTree::BoruvkaTree()
+{
+  
+}
 /**
 * Construct the tree.
 */
@@ -46,6 +49,9 @@ void BoruvkaTree::create( std::vector<vertex_descriptor> vertices)
       nodeToVertex[newNode] = *first;
     }
   }
+  vertex_descriptor rootVertex = boost::graph_traits<Graph>::null_vertex();
+  vertexToNode[rootVertex] = root;
+  nodeToVertex[root] = rootVertex;
 }
 
 /**
@@ -165,4 +171,9 @@ std::vector<int> BoruvkaTree::getSiblings()
     siblings[vertexToInt[currentVertex]] = siblingNumber;
   }
   return siblings;
+}
+
+int BoruvkaTree::getRootInt()
+{
+  return vertexToInt[nodeToVertex[root]];
 }
