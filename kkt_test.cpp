@@ -19,6 +19,8 @@
 #include "boruvka_tree/BoruvkaNode.hpp"
 #include "boruvka_tree/BoruvkaTree.hpp"
 
+const int numNodes = 1000; //must be >= 10. Max number of nodes in the graph
+
 //typedef that allows easy use of the boost edge_weight property
 //Edge weights are integer values that express the cost of traversing an edge between two nodes
 typedef boost::property< boost::edge_weight_t, int> edge_weight;
@@ -47,8 +49,6 @@ std::vector<vertex_descriptor> parent(numNodes);
 boost::disjoint_sets< Rank, Parent> dset( &rank[0], &parent[0]); //Simplifies Boruvka step
 std::map<int, vertex_descriptor> supervertex_map;
 std::vector<vertex_descriptor> supervertices;
-
-const int numNodes = 10000000; //must be >= 10. Max number of nodes in the graph
 
 /**
  * @var boost::adjacency_list - graph - Adjacency List representation of a graph

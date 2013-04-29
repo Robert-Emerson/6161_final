@@ -4,7 +4,7 @@
 MSTVerifier::MSTVerifier( BoruvkaTree treeIn, std::vector<int> weight,std::vector<int> upper,std::vector<int> lower)
 {
   tree = BoruvkaTree(treeIn);
-  int height = 0;
+  this->height = 0;
   this->upper = upper;
   this->lower = lower;
   this->weight = weight;
