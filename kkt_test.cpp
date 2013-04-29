@@ -19,7 +19,7 @@
 #include "boruvka_tree/BoruvkaNode.hpp"
 #include "boruvka_tree/BoruvkaTree.hpp"
 
-const int numNodes = 1000; //must be >= 10. Max number of nodes in the graph
+const int numNodes = 10000000; //must be >= 10. Max number of nodes in the graph
 
 //typedef that allows easy use of the boost edge_weight property
 //Edge weights are integer values that express the cost of traversing an edge between two nodes
