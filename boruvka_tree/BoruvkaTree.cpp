@@ -13,6 +13,7 @@ BoruvkaTree::BoruvkaTree()
 */
 BoruvkaTree::BoruvkaTree( int numLeaves, std::map<int, vertex_descriptor> intToVertex )
 {
+  this->root = new BoruvkaNode;
   this->numNodes = 2*numLeaves;
   this->intToVertex = intToVertex;
   this->numParents = 0; //Number of non-leaf nodes, not including root
@@ -39,19 +40,17 @@ BoruvkaTree::~BoruvkaTree( )
 void BoruvkaTree::create( std::vector<vertex_descriptor> vertices)
 {
   std::vector<vertex_descriptor>::iterator first = vertices.begin();
+  vertex_descriptor rootVertex = boost::graph_traits<Graph>::null_vertex();
+  vertexToNode[rootVertex] = root;
+  nodeToVertex[root] = rootVertex;
+  
   for( ; first != vertices.end(); ++first)
   {
-    if (vertexToNode[*first]->getType() == 0)
-    {
       BoruvkaNode* newNode = new BoruvkaNode(*first);
       newNode->setParent( root, -1);
       vertexToNode[*first] = newNode;
       nodeToVertex[newNode] = *first;
-    }
   }
-  vertex_descriptor rootVertex = boost::graph_traits<Graph>::null_vertex();
-  vertexToNode[rootVertex] = root;
-  nodeToVertex[root] = rootVertex;
 }
 
 /**
@@ -154,21 +153,24 @@ std::vector<int> BoruvkaTree::getSiblings()
   //Still a linear operation as the multiplication of times we run the inner and outer loop is <= number of nodes
   for ( ; nodeIterator != nodeToVertex.end(); ++nodeIterator)
   {
-    std::vector<BoruvkaNode*> temp = nodeIterator->first->getParent()->getChildren();
-    vertex_descriptor currentVertex = nodeIterator->second;
-    int siblingNumber = -1;
-    
-    std::vector<BoruvkaNode*>::iterator findCurrent = temp.begin();
-    while ( findCurrent != temp.end() && *findCurrent != vertexToNode[currentVertex] )
-    {
-      ++findCurrent;
-    }
-    if ( findCurrent != temp.end() )
-    {
-      siblingNumber = vertexToInt[nodeToVertex[*findCurrent]];
-    }
-    
-    siblings[vertexToInt[currentVertex]] = siblingNumber;
+     if ( nodeIterator->first->getParent() != NULL)
+     {
+	std::vector<BoruvkaNode*> temp = nodeIterator->first->getParent()->getChildren();
+	vertex_descriptor currentVertex = nodeIterator->second;
+	int siblingNumber = -1;
+	
+	std::vector<BoruvkaNode*>::iterator findCurrent = temp.begin();
+	while ( findCurrent != temp.end() && *findCurrent != vertexToNode[currentVertex] )
+	{
+	  ++findCurrent;
+	}
+	if ( findCurrent != temp.end() )
+	{
+	  siblingNumber = vertexToInt[nodeToVertex[*findCurrent]];
+	}
+	
+	siblings[vertexToInt[currentVertex]] = siblingNumber;
+     }
   }
   return siblings;
 }

@@ -10,6 +10,7 @@
  */
 BoruvkaNode::BoruvkaNode()
 {
+  this->empty = std::vector<BoruvkaNode*>();
   this->parent = NULL;
   this->constructorType = 0; //Signifies default constructor
   this->weightToParent = -1;
@@ -25,6 +26,7 @@ BoruvkaNode::~BoruvkaNode()
  */
 BoruvkaNode::BoruvkaNode( vertex_descriptor vertex)
 {
+  this->empty = std::vector<BoruvkaNode*>();
   this->parent = NULL;
   this->constructorType = 1; //Signifies non-default constructor
   this->weightToParent = -1;
@@ -53,5 +55,7 @@ BoruvkaNode* BoruvkaNode::getParent()
 
 std::vector<BoruvkaNode*>& BoruvkaNode::getChildren()
 {
-  return this->children;
+  if ( children.front() != NULL)
+    return this->children;
+  return empty;
 }

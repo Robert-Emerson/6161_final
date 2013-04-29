@@ -40,10 +40,10 @@ class BoruvkaNode
     BoruvkaNode* getParent();
     
   private:
+    std::vector<BoruvkaNode*> empty;
     std::vector<BoruvkaNode*> children;
     BoruvkaNode* parent;
     int weightToParent;
     int constructorType;
 };
-
 #endif
