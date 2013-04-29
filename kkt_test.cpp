@@ -1,6 +1,6 @@
 /**
  * @author Robert Emerson
- * @date March 6, 2013
+ * @date April 29, 2013
  * @brief KKT randomized MST algorithm.
  */
 
@@ -27,6 +27,7 @@ typedef boost::property< boost::edge_weight_t, int> edge_weight;
 //Uses boost vectors to store vertices and edges. This is an undirected graph.
 typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, edge_weight > Graph;
 
+//typedefs that allow ease of use of many boost types
 typedef boost::graph_traits<Graph>::vertex_iterator vertex_iterator;
 typedef boost::graph_traits<Graph>::vertex_descriptor vertex_descriptor;
 typedef boost::graph_traits<Graph>::vertices_size_type vertices_size_type;
@@ -35,17 +36,19 @@ typedef boost::graph_traits<Graph>::edge_iterator edge_iterator;
 typedef boost::graph_traits<Graph>::out_edge_iterator out_edge_iterator;
 typedef boost::graph_traits<Graph>::edge_descriptor edge_descriptor;
 typedef boost::property_map< Graph, boost::edge_weight_t>::type EdgeWeightMap;
-typedef std::pair<edge_descriptor, int> w_edge;
+typedef std::pair<edge_descriptor, int> w_edge; //weighted edge
 
+//Necessary for disjoint sets
 typedef vertices_size_type* Rank;
 typedef vertex_descriptor* Parent;
 
-const int numNodes = 10000000; //must be >= 10. is the max number of nodes
 std::vector<vertices_size_type> rank(numNodes);
 std::vector<vertex_descriptor> parent(numNodes);
-boost::disjoint_sets< Rank, Parent> dset( &rank[0], &parent[0]);
+boost::disjoint_sets< Rank, Parent> dset( &rank[0], &parent[0]); //Simplifies Boruvka step
 std::map<int, vertex_descriptor> supervertex_map;
 std::vector<vertex_descriptor> supervertices;
+
+const int numNodes = 10000000; //must be >= 10. Max number of nodes in the graph
 
 /**
  * @var boost::adjacency_list - graph - Adjacency List representation of a graph
@@ -57,6 +60,11 @@ std::vector<vertex_descriptor> supervertices;
  */
 void createGraph( Graph& graph);
 
+/**
+ * @var Graph& - graph - The input graph to run this algorithm on
+ * @return Graph Returns a graph object with all the verticesand only the edges in the MST
+ * Runs the KKT MST algorithm on provied graph
+ */
 Graph kktMST( Graph& graph);
 
 /**
@@ -66,6 +74,12 @@ Graph kktMST( Graph& graph);
  */
 Graph boruvkaCut( Graph& graph, int createTree, BoruvkaTree& boruvkaTree);
 
+/**
+ * @ver w_edge - edge1 - Representation of the first edge
+ * @var w_edge - edge2 - Representation of the second edge
+ * @return w_edge Lower weight edge
+ * Returns the minimum of two input edges, based on edge weight
+ */
 w_edge findMinWeightEdge( w_edge edge1, w_edge edge2);
 
 int main( int argc, char* argv[])
@@ -391,7 +405,7 @@ Graph boruvkaCut( Graph& graph, int createTree, BoruvkaTree& boruvkaTree)
   
 }
 
-//Returns the minimum of two input edges
+
 w_edge findMinWeightEdge( w_edge edge1, w_edge edge2)
 {
   if ( edge1.second < edge2.second) return edge1;
